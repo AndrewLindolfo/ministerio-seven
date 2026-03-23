@@ -1,0 +1,93 @@
+.musica-top-controls{
+  margin-top:14px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.musica-top-controls button{
+  min-height:38px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.03);
+  color:var(--text);
+}
+
+.hidden{
+  display:none !important;
+}
+
+
+/* Botão PDF mais moderno */
+.pdf-modern-btn{
+  position: relative;
+  overflow: hidden;
+  display:inline-flex !important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  min-width:48px;
+  min-height:38px;
+  padding:6px 10px !important;
+  border-radius:999px;
+  border:1px solid var(--border) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 4px 16px rgba(0,0,0,.12);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.pdf-modern-btn:hover{
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 8px 20px rgba(0,0,0,.16);
+  border-color: rgba(255,255,255,.18) !important;
+}
+
+.pdf-modern-btn:active{
+  transform: translateY(0);
+}
+
+.pdf-modern-btn::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(135deg, rgba(255,255,255,.08), transparent 45%);
+  pointer-events:none;
+}
+
+.pdf-btn-icon{
+  display:block;
+  font-size:14px;
+  line-height:1;
+  margin-bottom:1px;
+  font-weight:700;
+}
+
+.pdf-btn-label{
+  display:block;
+  font-size:10px;
+  line-height:1;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-family: Inter, Arial, sans-serif;
+  font-weight:800;
+}
+
+[data-theme="light"] .pdf-modern-btn{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.95), rgba(245,245,245,.92)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.8),
+    0 4px 14px rgba(0,0,0,.08);
+}
+
+[data-theme="light"] .pdf-modern-btn:hover{
+  border-color: rgba(0,0,0,.10) !important;
+}

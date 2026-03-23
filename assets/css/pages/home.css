@@ -1,0 +1,50 @@
+.hero-banner{
+  width: 100%;
+  min-height: clamp(180px, 30vw, 420px);
+  margin: 8px 0 18px;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: contain;
+}
+
+.programacao-section h2,
+.destaques-section h2{
+  font-size:clamp(1.5rem,2vw,2rem);
+  margin-bottom:18px;
+}
+
+#programacao-card,
+#destaques-grid{
+  display:grid;
+  gap:16px;
+}
+
+.programacao-box,
+.destaque-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:22px;
+  box-shadow:var(--shadow);
+}
+
+#seven-photo-card{
+  min-height:260px;
+  border:1px dashed var(--border);
+  border-radius:24px;
+  background:var(--surface);
+}
+
+@media (max-width: 900px){
+  .hero-banner{
+    min-height: clamp(150px, 28vw, 300px);
+    margin: 6px 0 16px;
+  }
+}
+
+@media (max-width: 600px){
+  .hero-banner{
+    min-height: clamp(120px, 26vw, 220px);
+    margin: 4px 0 14px;
+  }
+}
