@@ -19,15 +19,17 @@
   <link rel="stylesheet" href="assets/css/responsive.css" />
   <link rel="stylesheet" href="assets/css/pages/home.css" />
 
-  <script>
-    (function () {
-      var launchDate = new Date("2026-03-27T17:00:00-04:00").getTime();
-      var now = Date.now();
-      if (now < launchDate) {
-        window.location.replace("./inauguracao.html");
-      }
-    })();
-  </script>
+ <script>
+  (function () {
+    var introEnabled = true;
+    var launchDate = new Date("2026-03-27T17:00:00-04:00").getTime();
+    var now = Date.now();
+
+    if (introEnabled && now < launchDate) {
+      window.location.replace("./inauguracao.html");
+    }
+  })();
+</script>
 
 </head>
 <body>
