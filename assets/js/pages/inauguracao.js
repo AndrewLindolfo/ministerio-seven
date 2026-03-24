@@ -1,4 +1,4 @@
-const LAUNCH_DATE = new Date("2026-03-27T17:00:00-04:00").getTime();
+const LAUNCH_DATE = new Date("2026-03-27T16:00:00-04:00").getTime();
 const REDIRECT_URL = "./index.html";
 
 const diasEl = document.getElementById("dias");
