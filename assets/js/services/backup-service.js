@@ -1,4 +1,4 @@
-import { getCollection } from "../db.js";
+import { getCollection, explainFirebaseError } from "../db.js";
 
 export const BACKUP_COLLECTIONS = [
   "admins",
@@ -11,6 +11,8 @@ export const BACKUP_COLLECTIONS = [
   "links",
   "config"
 ];
+
+const OPTIONAL_COLLECTIONS = new Set(["admins", "contatos"]);
 
 function sanitizeForJson(value) {
   if (value === undefined) return null;
@@ -32,15 +34,36 @@ export async function exportBackupJson() {
     _meta: {
       app: "Ministerio Seven",
       version: 1,
+      backupType: "full-clone",
       exportedAt: new Date().toISOString(),
       collections: [...BACKUP_COLLECTIONS]
     }
   };
 
+  const summary = {
+    exported: {},
+    skipped: [],
+    warnings: []
+  };
+
   for (const name of BACKUP_COLLECTIONS) {
-    const items = await getCollection(name);
-    result[name] = sanitizeForJson(items);
+    try {
+      const items = await getCollection(name);
+      result[name] = sanitizeForJson(items);
+      summary.exported[name] = Array.isArray(items) ? items.length : 0;
+    } catch (error) {
+      const readable = explainFirebaseError(error);
+      if (OPTIONAL_COLLECTIONS.has(name) || error?.code === "permission-denied") {
+        result[name] = [];
+        summary.exported[name] = 0;
+        summary.skipped.push(name);
+        summary.warnings.push(`Coleção \"${name}\" ignorada no backup: ${readable}`);
+        continue;
+      }
+      throw new Error(`Falha ao exportar \"${name}\": ${readable}`);
+    }
   }
 
+  result._summary = summary;
   return result;
 }

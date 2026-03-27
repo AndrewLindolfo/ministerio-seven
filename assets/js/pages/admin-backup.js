@@ -1,5 +1,6 @@
 import { exportBackupJson } from "../services/backup-service.js";
 import { restoreBackupJson } from "../services/restore-service.js";
+import { explainFirebaseError } from "../db.js";
 
 function downloadJsonFile(data, filename) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -9,6 +10,19 @@ function downloadJsonFile(data, filename) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function buildRestoreMessage(summary) {
+  const restoredEntries = Object.entries(summary.restored || {}).filter(([, count]) => count > 0);
+  const restoredText = restoredEntries.length
+    ? restoredEntries.map(([name, count]) => `${name}: ${count}`).join("\n")
+    : "Nenhum item foi restaurado.";
+
+  const warningsText = Array.isArray(summary.warnings) && summary.warnings.length
+    ? `\n\nAvisos:\n- ${summary.warnings.join("\n- ")}`
+    : "";
+
+  return `Backup restaurado.\n\nItens restaurados:\n${restoredText}${warningsText}`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -30,9 +44,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await exportBackupJson();
       const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
       downloadJsonFile(data, `ministerio-seven-backup-${stamp}.json`);
+      alert("Backup gerado com sucesso.");
     } catch (error) {
       console.error("Erro ao fazer backup:", error);
-      alert("Não foi possível gerar o backup.");
+      alert(`Não foi possível gerar o backup.\n\n${explainFirebaseError(error)}`);
     } finally {
       exportButton.disabled = false;
     }
@@ -51,15 +66,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       restoreButton.disabled = true;
-
       const text = await file.text();
       const json = JSON.parse(text);
-      await restoreBackupJson(json);
-
-      alert("Backup restaurado com sucesso.");
+      const summary = await restoreBackupJson(json);
+      alert(buildRestoreMessage(summary));
     } catch (error) {
       console.error("Erro ao restaurar backup:", error);
-      alert("Não foi possível restaurar o backup.");
+      alert(`Não foi possível restaurar o backup.\n\n${error?.message || explainFirebaseError(error)}`);
     } finally {
       restoreButton.disabled = false;
     }

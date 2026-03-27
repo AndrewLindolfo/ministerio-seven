@@ -86,7 +86,7 @@ export async function getOneByField(collectionName, field, value) {
 export function explainFirebaseError(error) {
   const code = error?.code || "";
   if (code.includes("permission-denied")) {
-    return "Permissão negada no Firestore. As regras do banco precisam liberar gravação para o usuário logado.";
+    return "Permissão negada no Firestore. As regras do banco precisam liberar acesso ao usuário logado.";
   }
   if (code.includes("unauthenticated")) {
     return "Usuário não autenticado. Faça login novamente.";
@@ -94,5 +94,5 @@ export function explainFirebaseError(error) {
   if (code.includes("unavailable")) {
     return "Firestore indisponível no momento. Tente de novo.";
   }
-  return error?.message || "Erro desconhecido ao salvar no Firebase.";
+  return error?.message || "Erro desconhecido ao acessar o Firebase.";
 }
