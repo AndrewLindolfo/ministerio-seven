@@ -10,17 +10,15 @@
   <link rel="stylesheet" href="../assets/css/animations.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
   <link rel="stylesheet" href="../assets/css/admin.css" />
-  <link rel="stylesheet" href="../assets/css/pages/admin-downloads.css" />
+  <link rel="stylesheet" href="../assets/css/pages/admin-downloads-hub.css" />
 </head>
 <body>
-
 <header class="admin-topbar">
   <div class="container admin-topbar-inner">
     <a href="./index.html" class="admin-brand" aria-label="Voltar ao painel">
       <img src="../assets/img/v7/icon_120.png" alt="V7" class="admin-v7" />
       <strong>Área de Administração</strong>
     </a>
-
     <div class="header-actions">
       <button type="button" id="theme-toggle" aria-label="Alternar tema">🌙</button>
       <div class="admin-account">
@@ -39,12 +37,16 @@
   <section class="container">
     <a href="./index.html" class="admin-back-link">← Voltar ao painel</a>
     <h1>Downloads</h1>
-
-    <div class="admin-toolbar">
-      <button type="button" id="new-download-button" class="button-primary">Novo download</button>
+    <div class="admin-downloads-hub">
+      <a href="./downloads-geral.html" class="admin-downloads-hub-card">
+        <strong>Downloads Geral</strong>
+        <p>Gerencie os downloads gerais existentes.</p>
+      </a>
+      <a href="./downloads-por-musica.html" class="admin-downloads-hub-card">
+        <strong>Downloads por Música</strong>
+        <p>Vincule links de PDF e PPT às músicas cadastradas.</p>
+      </a>
     </div>
-    <div id="admin-downloads-list"></div>
-
   </section>
 </main>
 
@@ -53,6 +55,5 @@
 </div>
 <script type="module" src="../assets/js/app.js"></script>
 <script type="module" src="../assets/js/auth-guard.js"></script>
-<script type="module" src="../assets/js/pages/admin-downloads.js"></script>
 </body>
 </html>

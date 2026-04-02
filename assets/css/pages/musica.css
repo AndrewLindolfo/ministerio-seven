@@ -91,3 +91,169 @@
 [data-theme="light"] .pdf-modern-btn:hover{
   border-color: rgba(0,0,0,.10) !important;
 }
+
+
+/* ===== V2 item 17: barra lateral fixa / menu mobile ===== */
+.musica-page .container{position:relative;}
+
+@media (min-width: 901px){
+  .musica-page .container{
+    padding-left:90px;
+  }
+
+  .musica-top-controls{
+    position:fixed;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:35;
+    display:flex;
+    flex-direction:column;
+    flex-wrap:nowrap;
+    gap:8px;
+    padding:8px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:22px;
+    background:rgba(14,16,28,.88);
+    box-shadow:0 14px 34px rgba(0,0,0,.22);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+
+  .musica-top-controls button{
+    min-width:54px;
+    padding:0 10px;
+  }
+}
+
+@media (max-width: 900px){
+  .musica-page{
+    padding-bottom:96px;
+  }
+
+  .musica-top-controls{
+    position:fixed;
+    left:50%;
+    bottom:12px;
+    transform:translateX(-50%);
+    z-index:45;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:nowrap;
+    gap:6px;
+    width:max-content;
+    max-width:calc(100vw - 20px);
+    overflow-x:auto;
+    padding:10px 12px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:22px;
+    background:rgba(14,16,28,.92);
+    box-shadow:0 14px 34px rgba(0,0,0,.24);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+
+  .musica-top-controls button{
+    min-width:44px;
+    min-height:38px;
+    padding:0 10px;
+    font-size:.95rem;
+    flex:0 0 auto;
+  }
+
+  .musica-top-controls .pdf-modern-btn{
+    min-width:48px;
+  }
+}
+
+
+.musica-cifra-selector{
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 180px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.musica-cifra-selector-option{
+  display: block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: var(--text);
+  text-decoration: none;
+  background: rgba(255,255,255,.03);
+}
+.musica-cifra-selector-option:hover{
+  background: rgba(255,255,255,.08);
+}
+.musica-video-wrapper iframe{
+  width:100%;
+  min-height:280px;
+  border:0;
+  border-radius:18px;
+}
+
+/* Ajuste fino desktop: barra lateral da música alinhada à cifra */
+@media (min-width: 901px){
+  .musica-top-controls{
+    left: max(10px, calc(50% - 620px)) !important;
+    top: 58% !important;
+    transform: translateY(-58%) !important;
+  }
+
+  .musica-page .container{
+    padding-left: 45px !important;
+  }
+}
+
+/* Visual claro igual ao menu aprovado da cifra */
+[data-theme="light"] .musica-top-controls{
+  background: rgba(255,255,255,.96) !important;
+  border-color: rgba(15,23,42,.12) !important;
+  box-shadow: 0 14px 34px rgba(15,23,42,.12) !important;
+}
+
+[data-theme="light"] .musica-top-controls button{
+  color: #111827 !important;
+  background: rgba(17,24,39,.04) !important;
+  border-color: rgba(15,23,42,.12) !important;
+}
+
+
+.musica-live-update-banner{
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  z-index: 160;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(59,130,246,.35);
+  background: rgba(59,130,246,.96);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: .92rem;
+  box-shadow: 0 14px 32px rgba(0,0,0,.18);
+}
+.musica-live-update-banner.hidden{
+  display:none !important;
+}
+@media (max-width: 768px){
+  .musica-live-update-banner{
+    width:min(92vw,360px);
+    min-height:40px;
+    padding:8px 14px;
+    font-size:.84rem;
+    text-align:center;
+    line-height:1.25;
+  }
+}

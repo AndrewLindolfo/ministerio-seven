@@ -53,7 +53,10 @@ export function initMobileMenu() {
 
   closeBtn?.addEventListener("click", () => closeMenu(menu));
   overlay?.addEventListener("click", () => closeMenu(menu));
-  links.forEach((link) => link.addEventListener("click", () => closeMenu(menu)));
+  links.forEach((link) => link.addEventListener("click", (event) => {
+    if (event.currentTarget?.dataset?.submenuToggle === "1") return;
+    closeMenu(menu);
+  }));
 
   window.addEventListener("resize", applyResponsiveState);
   applyResponsiveState();

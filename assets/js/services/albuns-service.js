@@ -1,4 +1,5 @@
 import { addDocument, updateDocument, deleteDocument, getCollection, getDocument, serverTimestamp, normalizeText } from "../db.js";
+import { convertDriveLinksInPayload } from "../utils/google-drive-links.js";
 const COLLECTION = "albuns";
 const CACHE_KEY = "seven_cache_albuns_v1";
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -48,13 +49,14 @@ export async function getAlbum(id) {
 }
 
 export async function saveAlbum(payload, id = "") {
+  const normalizedPayload = convertDriveLinksInPayload(payload);
   const docData = {
-    title: payload.title || "",
-    normalizedTitle: normalizeText(payload.title || ""),
-    albumUrl: payload.albumUrl || "",
-    coverUrl: payload.coverUrl || "",
-    description: payload.description || "",
-    active: payload.active !== false,
+    title: normalizedPayload.title || "",
+    normalizedTitle: normalizeText(normalizedPayload.title || ""),
+    albumUrl: normalizedPayload.albumUrl || "",
+    coverUrl: normalizedPayload.coverUrl || "",
+    description: normalizedPayload.description || "",
+    active: normalizedPayload.active !== false,
     updatedAt: serverTimestamp()
   };
 

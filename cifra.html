@@ -30,8 +30,9 @@
       <a href="./musicas.html">Músicas</a>
       <a href="./cifras.html">Cifras</a>
       <a href="./agenda.html">Agenda</a>
-      <a href="./fotos.html">Fotos</a>
+      <a href="./fotos.html">Álbuns</a>
       <a href="./downloads.html">Downloads</a>
+      <a href="./ferramentas.html">Ferramentas</a>
       <a href="./contato.html">Contato</a>
     </nav>
     <div class="header-actions">
@@ -49,8 +50,9 @@
     <a href="./musicas.html" class="mobile-nav-link">Músicas</a>
     <a href="./cifras.html" class="mobile-nav-link">Cifras</a>
     <a href="./agenda.html" class="mobile-nav-link">Agenda</a>
-    <a href="./fotos.html" class="mobile-nav-link">Fotos</a>
+    <a href="./fotos.html" class="mobile-nav-link">Álbuns</a>
     <a href="./downloads.html" class="mobile-nav-link">Downloads</a>
+    <a href="./ferramentas.html" class="mobile-nav-link">Ferramentas</a>
     <a href="./contato.html" class="mobile-nav-link">Contato</a>
   </nav>
 </div>
@@ -70,9 +72,22 @@
     <p id="cifra-subtitulo" class="page-subtitle" hidden>Subtítulo</p>
     <div id="cifra-meta" class="meta-line"></div>
     <div class="page-cross-link"><a href="./musica.html" id="ver-letra-link">Ver letra</a></div>
+    <div id="cifra-instrument-switcher" class="cifra-instrument-switcher hidden">
+      <button type="button" id="cifra-instrument-current" class="cifra-instrument-button" aria-haspopup="listbox" aria-expanded="false">Violão</button>
+      <div id="cifra-instrument-menu" class="cifra-instrument-menu hidden" role="listbox" aria-label="Selecionar instrumento"></div>
+    </div>
+    <div id="cifra-mini-metronome" class="cifra-mini-metronome hidden" aria-label="Mini metrônomo da cifra">
+      <div class="cifra-mini-metronome-meta">
+        <span id="cifra-mini-metronome-bpm" class="cifra-mini-metronome-bpm">72 BPM</span>
+        <span class="cifra-mini-metronome-divider">•</span>
+        <span id="cifra-mini-metronome-compasso" class="cifra-mini-metronome-compasso">4/4</span>
+      </div>
+      <div id="cifra-mini-metronome-pulses" class="cifra-mini-metronome-pulses" aria-hidden="true"></div>
+      <button type="button" id="cifra-mini-metronome-toggle" class="cifra-mini-metronome-toggle" aria-pressed="false" aria-label="Iniciar metrônomo">▶</button>
+    </div>
     <div class="cifra-top-controls">
-      <button type="button" id="transpose-down">Tom -</button>
-      <button type="button" id="transpose-up">Tom +</button>
+      <button type="button" id="transpose-down">T-</button>
+      <button type="button" id="transpose-up">T+</button>
       <button type="button" id="font-down">A-</button>
       <button type="button" id="font-up">A+</button>
       <button type="button" id="focus-toggle" aria-label="Modo foco">👁</button>
@@ -80,6 +95,7 @@
       <button type="button" id="scroll-panel-toggle" class="scroll-panel-toggle-btn" aria-label="Mostrar ou ocultar auto-rolamento" title="Mostrar ou ocultar auto-rolamento">
         <span class="scroll-panel-toggle-icon" aria-hidden="true"></span>
       </button>
+      <button type="button" id="mini-metronome-floating-toggle" class="mini-metronome-floating-toggle hidden" aria-label="Iniciar ou pausar metrônomo" title="Iniciar ou pausar metrônomo">▶</button>
       <button type="button" id="pdf-toggle" class="pdf-modern-btn" aria-label="Baixar PDF" title="Baixar PDF">
         <span class="pdf-btn-icon">⤓</span>
         <span class="pdf-btn-label">PDF</span>

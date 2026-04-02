@@ -4,6 +4,7 @@ import { listCifras } from "./services/cifras-service.js";
 import { listDownloads } from "./services/downloads-service.js";
 import { listAlbuns } from "./services/albuns-service.js";
 import { listProgramacoes } from "./services/programacoes-service.js";
+import { listDownloadsByMusic } from "./services/downloads-music-service.js";
 
 let SEARCH_INDEX = [];
 let searchLoaded = false;
@@ -42,10 +43,11 @@ async function loadSearchIndex() {
   searchLoading = true;
 
   try {
-    const [musicas, cifras, downloads, albuns, programacoes] = await Promise.all([
+    const [musicas, cifras, downloads, downloadsMusic, albuns, programacoes] = await Promise.all([
       listMusicas(true),
       listCifras(true),
       listDownloads(true),
+      listDownloadsByMusic(true),
       listAlbuns(true),
       listProgramacoes(true)
     ]);
@@ -74,6 +76,14 @@ async function loadSearchIndex() {
       searchText: buildSearchText(item.title, item.description)
     }));
 
+    const downloadMusicItems = (downloadsMusic || []).map((item) => ({
+      type: "Download por música",
+      label: item.title || "",
+      description: [item.pdfUrl ? "PDF" : "", item.pptUrl ? "PPT" : ""].filter(Boolean).join(" • "),
+      href: "./downloads-por-musica.html",
+      searchText: buildSearchText(item.title, "download por musica", item.pdfUrl ? "pdf" : "", item.pptUrl ? "ppt" : "")
+    }));
+
     const albumItems = (albuns || []).map((item) => ({
       type: "Álbum",
       label: item.title || "",
@@ -90,12 +100,59 @@ async function loadSearchIndex() {
       searchText: buildSearchText(item.title, item.description, item.location)
     }));
 
+    const staticItems = [
+      {
+        type: "Página",
+        label: "Downloads por Música",
+        description: "PDF e PowerPoint por música",
+        href: "./downloads-por-musica.html",
+        searchText: buildSearchText("Downloads por Música", "PDF", "PPT")
+      },
+      {
+        type: "Ferramenta",
+        label: "Ferramentas",
+        description: "Afinador e metrônomo",
+        href: "./ferramentas.html",
+        searchText: buildSearchText("Ferramentas", "Afinador", "Metrônomo")
+      },
+      {
+        type: "Página",
+        label: "Downloads por Música",
+        description: "PDF e PowerPoint por música",
+        href: "./downloads-por-musica.html",
+        searchText: buildSearchText("Downloads por Música", "PDF", "PPT")
+      },
+      {
+        type: "Ferramenta",
+        label: "Afinador",
+        description: "Afinador cromático",
+        href: "./ferramentas.html#tool-card-afinador",
+        searchText: buildSearchText("Afinador", "Ferramentas", "cromático", "Hz")
+      },
+      {
+        type: "Página",
+        label: "Downloads por Música",
+        description: "PDF e PowerPoint por música",
+        href: "./downloads-por-musica.html",
+        searchText: buildSearchText("Downloads por Música", "PDF", "PPT")
+      },
+      {
+        type: "Ferramenta",
+        label: "Metrônomo",
+        description: "Controle de BPM e compasso",
+        href: "./ferramentas.html#tool-card-metronomo",
+        searchText: buildSearchText("Metrônomo", "Ferramentas", "BPM", "compasso")
+      }
+    ];
+
     SEARCH_INDEX = uniqueByHref([
       ...musicaItems,
       ...cifraItems,
       ...downloadItems,
+      ...downloadMusicItems,
       ...albumItems,
-      ...programacaoItems
+      ...programacaoItems,
+      ...staticItems
     ]);
 
     searchLoaded = true;

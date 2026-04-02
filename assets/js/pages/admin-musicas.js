@@ -1,3 +1,5 @@
+import { watchAuth, getAdminProfileByEmail } from "../auth.js";
+import { hasPermission, isPrimaryAdmin } from "../services/admin-permissions-service.js";
 import { listMusicas, removeMusica } from "../services/musicas-service.js";
 
 async function renderMusicas() {
@@ -35,4 +37,25 @@ async function renderMusicas() {
 document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("admin-musicas-search")?.addEventListener("input", renderMusicas);
   await renderMusicas();
+});
+
+function applyMusicPermissions(admin) {
+  const createBtn = document.querySelector('.admin-toolbar .button-primary');
+  if (createBtn) createBtn.classList.toggle('hidden', !hasPermission(admin, 'musicas', 'create'));
+  document.querySelectorAll('.admin-list-actions .button-outline').forEach((el) => {
+    el.classList.toggle('hidden', !hasPermission(admin, 'musicas', 'edit'));
+  });
+  document.querySelectorAll('[data-delete-id]').forEach((el) => {
+    el.classList.toggle('hidden', !hasPermission(admin, 'musicas', 'delete'));
+  });
+}
+
+watchAuth(async (user) => {
+  if (!user?.email) return;
+  const admin = await getAdminProfileByEmail(user.email);
+  if (!admin) return;
+  const rerender = async () => { await renderMusicas(); applyMusicPermissions(admin); };
+  document.getElementById("admin-musicas-search")?.removeEventListener("input", renderMusicas);
+  document.getElementById("admin-musicas-search")?.addEventListener("input", rerender);
+  await rerender();
 });

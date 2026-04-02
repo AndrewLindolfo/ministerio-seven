@@ -87,7 +87,36 @@
       </select>
 
       <input type="text" id="cifra-capo" placeholder="Capotraste (opcional)" />
-      <input type="text" id="cifra-bpm" placeholder="BPM (opcional)" />
+      <input type="text" id="cifra-bpm" placeholder="BPM (opcional)" inputmode="numeric" />
+
+      <select id="cifra-compasso" aria-label="Compasso da cifra">
+        <option value="">Compasso (opcional)</option>
+        <option value="2/4">2/4</option>
+        <option value="3/4">3/4</option>
+        <option value="4/4">4/4</option>
+        <option value="5/4">5/4</option>
+        <option value="6/8">6/8</option>
+        <option value="7/8">7/8</option>
+        <option value="9/8">9/8</option>
+        <option value="12/8">12/8</option>
+      </select>
+
+      <select id="cifra-instrumento" aria-label="Instrumento da cifra" required>
+        <option value="violao">Violão</option>
+        <option value="guitarra">Guitarra</option>
+        <option value="baixo">Baixo</option>
+        <option value="teclado">Teclado</option>
+      </select>
+
+      <select id="cifra-chord-color" aria-label="Cor dos acordes">
+        <option value="#FF5C00">Cor dos acordes: Laranja (padrão)</option>
+        <option value="#0d0d0d">Cor dos acordes: Preto</option>
+        <option value="#3b82f6">Cor dos acordes: Azul</option>
+        <option value="#ef4444">Cor dos acordes: Vermelho</option>
+        <option value="#22c55e">Cor dos acordes: Verde</option>
+        <option value="#eab308">Cor dos acordes: Amarelo</option>
+        <option value="#a855f7">Cor dos acordes: Roxo</option>
+      </select>
 
       <textarea id="cifra-conteudo" placeholder="Conteúdo da cifra"></textarea>
 

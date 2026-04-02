@@ -1,3 +1,5 @@
+import { watchAuth, getAdminProfileByEmail } from "../auth.js";
+import { hasPermission } from "../services/admin-permissions-service.js";
 import "../editor.js";
 import { getMusica, saveMusica, findDuplicateMusicaTitle, removeMusica } from "../services/musicas-service.js";
 import { explainFirebaseError } from "../db.js";
@@ -116,4 +118,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Erro ao excluir música no Firebase.\n\n" + explainFirebaseError(error));
     }
   });
+});
+
+watchAuth(async (user) => {
+  if (!user?.email) return;
+  const admin = await getAdminProfileByEmail(user.email);
+  if (!admin) return;
+  const isEdit = !!musicaId;
+  const canSave = isEdit ? hasPermission(admin, 'musicas', 'edit') : hasPermission(admin, 'musicas', 'create');
+  const canDelete = isEdit && hasPermission(admin, 'musicas', 'delete');
+  document.querySelector('#admin-editor-musica-form button[type="submit"]')?.classList.toggle('hidden', !canSave);
+  document.getElementById('delete-musica-button')?.classList.toggle('hidden', !canDelete);
 });

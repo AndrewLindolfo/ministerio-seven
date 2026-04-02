@@ -1,4 +1,5 @@
 import { addDocument, updateDocument, deleteDocument, getCollection, getDocument, serverTimestamp, normalizeText } from "../db.js";
+import { convertGoogleDriveToDirectImage, convertDownloadUrlByType } from "../utils/google-drive-links.js";
 const COLLECTION = "downloads";
 const CACHE_KEY = "seven_cache_downloads_v1";
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -48,12 +49,16 @@ export async function getDownload(id) {
 }
 
 export async function saveDownload(payload, id = "") {
+  const linkType = String(payload.linkType || "direct-download").trim() || "direct-download";
+  const normalizedUrl = convertDownloadUrlByType(payload.url || "", linkType);
+  const normalizedImageUrl = payload.imageUrl ? convertGoogleDriveToDirectImage(payload.imageUrl) : payload.imageUrl;
   const docData = {
     title: payload.title || "",
     normalizedTitle: normalizeText(payload.title || ""),
-    url: payload.url || "",
+    url: normalizedUrl || "",
     description: payload.description || "",
-    imageUrl: payload.imageUrl || "",
+    imageUrl: normalizedImageUrl || "",
+    linkType,
     active: payload.active !== false,
     updatedAt: serverTimestamp()
   };

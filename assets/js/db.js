@@ -13,7 +13,8 @@ import {
   orderBy,
   limit,
   serverTimestamp,
-  increment
+  increment,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export { serverTimestamp, increment };
@@ -95,4 +96,32 @@ export function explainFirebaseError(error) {
     return "Firestore indisponível no momento. Tente de novo.";
   }
   return error?.message || "Erro desconhecido ao acessar o Firebase.";
+}
+
+
+export function watchDocument(collectionName, id, callback, onError = null) {
+  return onSnapshot(doc(db, collectionName, id), (snap) => {
+    callback(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+  }, onError || ((error) => console.error("Erro ao observar documento:", error)));
+}
+
+
+export function watchCollection(collectionName, callback, options = {}, onError = null) {
+  const parts = [];
+  if (Array.isArray(options.where)) {
+    for (const [field, op, value] of options.where) {
+      parts.push(where(field, op, value));
+    }
+  }
+  if (options.orderBy?.field) {
+    parts.push(orderBy(options.orderBy.field, options.orderBy.direction || "asc"));
+  }
+  if (options.limit) {
+    parts.push(limit(options.limit));
+  }
+
+  const ref = parts.length ? query(collection(db, collectionName), ...parts) : collection(db, collectionName);
+  return onSnapshot(ref, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  }, onError || ((error) => console.error("Erro ao observar coleção:", error)));
 }

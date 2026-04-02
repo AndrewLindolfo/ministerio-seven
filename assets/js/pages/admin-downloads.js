@@ -1,4 +1,7 @@
+import { watchAuth, getAdminProfileByEmail } from "../auth.js";
+import { hasPermission } from "../services/admin-permissions-service.js";
 import { listDownloads, saveDownload, removeDownload } from "../services/downloads-service.js";
+import { isGoogleDriveFileUrl, detectGoogleResourceType } from "../utils/google-drive-links.js";
 
 function $(selector) {
   return document.querySelector(selector);
@@ -32,13 +35,25 @@ function ensureDownloadModal() {
         </label>
 
         <label>
+          <span>Tipo do link</span>
+          <select id="download-link-type">
+            <option value="keep">Manter link original</option>
+            <option value="drive-folder">Pasta / Link do Drive</option>
+            <option value="direct-download" selected>Arquivo para download</option>
+            <option value="pdf">PDF</option>
+            <option value="powerpoint">PowerPoint / Google Slides</option>
+          </select>
+          <small class="admin-form-hint" id="download-url-hint">Escolha como o site deve tratar o link no salvar.</small>
+        </label>
+
+        <label>
           <span>Descrição (opcional)</span>
           <textarea id="download-description" rows="3"></textarea>
         </label>
 
         <label>
           <span>Imagem (opcional)</span>
-          <input type="url" id="download-image-url" />
+          <input type="url" id="download-image-url" />\n          <small class="admin-form-hint" id="download-image-hint">Se for arquivo de imagem do Google Drive, será convertido automaticamente em imagem direta ao salvar.</small>
         </label>
 
         <div class="admin-modal-actions">
@@ -59,6 +74,46 @@ function ensureDownloadModal() {
   $("#download-form")?.addEventListener("submit", onSubmitDownloadForm);
 }
 
+
+function updateDownloadTypeHint() {
+  const urlInput = $("#download-url");
+  const typeSelect = $("#download-link-type");
+  const hint = $("#download-url-hint");
+  if (!urlInput || !typeSelect || !hint) return;
+
+  const value = urlInput.value.trim();
+  const type = typeSelect.value;
+  const resourceType = detectGoogleResourceType(value);
+
+  if (!value) {
+    hint.textContent = "Escolha como o site deve tratar o link no salvar.";
+    return;
+  }
+
+  if (type === "keep") {
+    hint.textContent = "O link será salvo exatamente como você colou.";
+    return;
+  }
+  if (type === "drive-folder") {
+    hint.textContent = "Use esta opção para pastas ou links do Drive que não devem ser convertidos.";
+    return;
+  }
+  if (type === "pdf") {
+    hint.textContent = resourceType === "google-slides"
+      ? "Link de Google Slides detectado: será convertido para exportação em PDF."
+      : "O link será convertido para PDF direto quando possível.";
+    return;
+  }
+  if (type === "powerpoint") {
+    hint.textContent = resourceType === "google-slides"
+      ? "Link de Google Slides detectado: será convertido para exportação em PPTX."
+      : "O link será tratado como PowerPoint / apresentação para download direto.";
+    return;
+  }
+  hint.textContent = "O link será convertido para download direto quando possível.";
+}
+
+
 function openDownloadModal(item = null) {
   ensureDownloadModal();
 
@@ -66,11 +121,13 @@ function openDownloadModal(item = null) {
   $("#download-title").value = item?.title || "";
   $("#download-url").value = item?.url || "";
   $("#download-description").value = item?.description || "";
+  $("#download-link-type").value = item?.linkType || "direct-download";
   $("#download-image-url").value = item?.imageUrl || "";
   $("#download-modal-title").textContent = item?.id ? "Editar download" : "Novo download";
 
   $("#download-modal").classList.remove("hidden");
   document.body.classList.add("modal-open");
+  updateDownloadTypeHint();
   setTimeout(() => $("#download-title")?.focus(), 50);
 }
 
@@ -85,6 +142,7 @@ async function onSubmitDownloadForm(event) {
   const payload = {
     title: $("#download-title").value.trim(),
     url: $("#download-url").value.trim(),
+    linkType: $("#download-link-type").value.trim() || "direct-download",
     description: $("#download-description").value.trim(),
     imageUrl: $("#download-image-url").value.trim(),
     active: true
@@ -149,6 +207,21 @@ async function renderList() {
 
 document.addEventListener("DOMContentLoaded", () => {
   ensureDownloadModal();
+  $("#download-url")?.addEventListener("input", updateDownloadTypeHint);
+  $("#download-link-type")?.addEventListener("change", updateDownloadTypeHint);
   document.getElementById("new-download-button")?.addEventListener("click", () => openDownloadModal());
   renderList();
+});
+
+watchAuth(async (user) => {
+  if (!user?.email) return;
+  const admin = await getAdminProfileByEmail(user.email);
+  if (!admin) return;
+  const refresh = async () => {
+    await renderList();
+    document.getElementById('new-download-button')?.classList.toggle('hidden', !hasPermission(admin,'downloadsGerais','create'));
+    document.querySelectorAll('[data-edit-id]').forEach((el)=>el.classList.toggle('hidden', !hasPermission(admin,'downloadsGerais','edit')));
+    document.querySelectorAll('[data-delete-id]').forEach((el)=>el.classList.toggle('hidden', !hasPermission(admin,'downloadsGerais','delete')));
+  };
+  await refresh();
 });

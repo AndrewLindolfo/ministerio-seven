@@ -1,4 +1,5 @@
-const TINYMCE_SRC = "/assets/vendor/tinymce/js/tinymce/tinymce.min.js";
+const TINYMCE_BASE_URL = new URL("../vendor/tinymce/js/tinymce", import.meta.url).href;
+const TINYMCE_SRC = new URL("../vendor/tinymce/js/tinymce/tinymce.min.js", import.meta.url).href;
 
 function loadTinyMCE() {
   return new Promise((resolve, reject) => {
@@ -9,8 +10,11 @@ function loadTinyMCE() {
 
     const existing = document.querySelector('script[data-tinymce-loader="true"]');
     if (existing) {
-      existing.addEventListener("load", () => resolve(window.tinymce), { once: true });
-      existing.addEventListener("error", reject, { once: true });
+      existing.addEventListener("load", () => {
+        if (window.tinymce) resolve(window.tinymce);
+        else reject(new Error("TinyMCE carregou, mas não foi inicializado corretamente."));
+      }, { once: true });
+      existing.addEventListener("error", () => reject(new Error("Não foi possível carregar o arquivo principal do TinyMCE.")), { once: true });
       return;
     }
 
@@ -18,8 +22,11 @@ function loadTinyMCE() {
     script.src = TINYMCE_SRC;
     script.async = true;
     script.dataset.tinymceLoader = "true";
-    script.onload = () => resolve(window.tinymce);
-    script.onerror = () => reject(new Error("Não foi possível carregar o TinyMCE local."));
+    script.onload = () => {
+      if (window.tinymce) resolve(window.tinymce);
+      else reject(new Error("TinyMCE não ficou disponível após o carregamento do script."));
+    };
+    script.onerror = () => reject(new Error(`Não foi possível carregar o TinyMCE local em: ${TINYMCE_SRC}`));
     document.head.appendChild(script);
   });
 }
@@ -79,6 +86,21 @@ function preserveCifraSpacingHtml(rawHtml = "") {
   return wrapper.innerHTML;
 }
 
+function getCommonTinyOptions() {
+  return {
+    license_key: "gpl",
+    base_url: TINYMCE_BASE_URL,
+    suffix: ".min",
+    skin: "oxide",
+    icons: "default",
+    promotion: false,
+    branding: false,
+    browser_spellcheck: true,
+    contextmenu: false,
+    convert_urls: false,
+  };
+}
+
 async function initMusicaEditor() {
   const textarea = document.getElementById("musica-letra");
   if (!textarea || !window.tinymce) return;
@@ -89,15 +111,13 @@ async function initMusicaEditor() {
   const initialValue = textarea.dataset.initialValue || textarea.value || "";
 
   await window.tinymce.init({
+    ...getCommonTinyOptions(),
     selector: "#musica-letra",
-    license_key: "gpl",
     height: 340,
     menubar: true,
-    promotion: false,
-    branding: false,
     plugins: "lists link code table fullscreen preview searchreplace visualblocks",
     toolbar:
-      "undo redo | blocks fontfamily fontsize | bold italic underline forecolor backcolor | " +
+      "undo redo | blocks fontsize | bold italic underline forecolor backcolor | " +
       "alignleft aligncenter alignright alignjustify | bullist numlist | link table | code fullscreen preview",
     content_style: `
       body {
@@ -131,17 +151,15 @@ async function initCifraEditor() {
   const initialValue = textarea.dataset.initialValue || textarea.value || "";
 
   await window.tinymce.init({
+    ...getCommonTinyOptions(),
     selector: "#cifra-conteudo",
-    license_key: "gpl",
     height: 340,
     menubar: true,
-    promotion: false,
-    branding: false,
     forced_root_block: false,
     paste_as_text: false,
     entity_encoding: "named",
     verify_html: false,
-    plugins: "code fullscreen preview searchreplace visualblocks textcolor nonbreaking",
+    plugins: "code fullscreen preview searchreplace visualblocks nonbreaking",
     toolbar: "undo redo | bold italic underline forecolor backcolor | code fullscreen preview",
     content_style: `
       body {
@@ -234,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     await initSevenEditors();
   } catch (error) {
-    console.error(error);
-    alert("Erro ao carregar o editor TinyMCE local.");
+    console.error("Falha ao iniciar o TinyMCE:", error);
+    alert(`Erro ao carregar o editor TinyMCE local.\n\nDetalhe: ${error?.message || error}`);
   }
 });

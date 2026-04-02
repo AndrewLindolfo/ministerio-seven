@@ -7,6 +7,7 @@ export const BACKUP_COLLECTIONS = [
   "programacoes",
   "albuns",
   "downloads",
+  "notificacoes",
   "contatos",
   "links",
   "config"

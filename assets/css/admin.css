@@ -121,3 +121,13 @@
   padding:18px;
   color:var(--text-soft);
 }
+
+.hidden{display:none !important;}
+
+body.admin-dashboard-permissions-pending .admin-cards-grid{
+  visibility:hidden;
+}
+
+body.admin-dashboard-permissions-pending .admin-intro{
+  visibility:hidden;
+}

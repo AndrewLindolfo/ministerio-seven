@@ -1,43 +1,41 @@
 import { auth, provider } from "./firebase.js";
+import { getOneByField } from "./db.js";
 import {
   signInWithPopup,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// ADMINS AUTORIZADOS DIRETAMENTE
-const ADMIN_EMAILS = [
-  "lindolfoandrew0@gmail.com",
-  "andrewlindolfo90@gmail.com"
-];
-
 function normalize(email = "") {
   return String(email).trim().toLowerCase();
 }
 
-function isAdmin(email) {
-  const e = normalize(email);
-  return ADMIN_EMAILS.includes(e);
+export async function getAdminProfileByEmail(email = "") {
+  const normalizedEmail = normalize(email);
+  if (!normalizedEmail) return null;
+  const admin = await getOneByField("admins", "email", normalizedEmail);
+  if (!admin) return null;
+  if (admin.ativo === false || admin.active === false) return null;
+  return admin;
 }
 
 export async function loginWithGoogle() {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-
     const email = normalize(user?.email || "");
+    const admin = await getAdminProfileByEmail(email);
 
-    if (!isAdmin(email)) {
+    if (!admin) {
       await signOut(auth);
       alert("Seu e-mail não está autorizado como administrador.\n\nE-mail detectado: " + email);
       return;
     }
 
     window.location.href = "/admin/index.html";
-
   } catch (error) {
     console.error("Erro no login:", error);
-    alert("Erro ao fazer login com Google.");
+    alert(`Erro ao fazer login com Google: ${error.code || error.message || "desconhecido"}`);
   }
 }
 

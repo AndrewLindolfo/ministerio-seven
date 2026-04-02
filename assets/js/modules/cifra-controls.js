@@ -77,6 +77,14 @@ function applyScrollPanelPos() {
   const bubble = $("#scroll-bubble");
   if (!bubble) return;
 
+  if (window.innerWidth <= 1024) {
+    bubble.style.left = "";
+    bubble.style.top = "";
+    bubble.style.right = "";
+    bubble.style.bottom = "";
+    return;
+  }
+
   const stored = getStoredScrollPanelPos();
   if (!stored || typeof stored.left !== "number" || typeof stored.top !== "number") {
     bubble.style.left = "";
@@ -108,6 +116,12 @@ function setScrollPanelVisible(visible) {
 
   if (toggleBtn) toggleBtn.classList.toggle("is-active", visible);
   if (visible) requestAnimationFrame(() => applyScrollPanelPos());
+  requestAnimationFrame(() => {
+    const controls = $(".cifra-top-controls");
+    if (controls && window.innerWidth <= 1024) {
+      controls.classList.remove("controls-hidden");
+    }
+  });
 
   if (!visible && scrollInterval) {
     clearInterval(scrollInterval);
@@ -122,6 +136,7 @@ function toggleScrollPanel() {
 }
 
 function initScrollPanelDrag() {
+  if (window.innerWidth <= 1024) return;
   const bubble = $("#scroll-bubble");
   if (!bubble || bubble.dataset.dragReady === "1") return;
   bubble.dataset.dragReady = "1";
@@ -175,6 +190,8 @@ function initScrollPanelDrag() {
   window.addEventListener("pointercancel", end);
 
   window.addEventListener("resize", () => {
+    initMobileScrollBar();
+    initResponsiveControlsAutoHide();
     if (isScrollPanelVisible()) applyScrollPanelPos();
   });
 }
@@ -247,6 +264,211 @@ function updateSpeedIndicator() {
   }
 }
 
+function initMobileScrollBar() {
+  const bubble = $("#scroll-bubble");
+  if (!bubble) return;
+
+  const isMobileOrTablet = window.innerWidth <= 1024;
+  bubble.classList.toggle("is-mobile-scroll-bar", isMobileOrTablet);
+
+  let slider = bubble.querySelector(".mobile-scroll-slider");
+  if (!slider) {
+    slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = "0.08";
+    slider.max = "1.20";
+    slider.step = "0.01";
+    slider.className = "mobile-scroll-slider";
+    slider.setAttribute("aria-label", "Velocidade da rolagem");
+    const toggleBtn = $("#scroll-toggle");
+    if (toggleBtn) bubble.insertBefore(slider, toggleBtn);
+    else bubble.appendChild(slider);
+
+    slider.addEventListener("input", () => {
+      scrollSpeed = Number(slider.value || "0.35");
+      localStorage.setItem(SPEED_KEY, String(scrollSpeed));
+      updateSpeedIndicator();
+    });
+  }
+
+  slider.value = String(scrollSpeed);
+}
+
+
+function initResponsiveControlsAutoHide() {
+  const controls = $(".cifra-top-controls");
+  if (!controls || controls.dataset.autoHideReady === "1") return;
+  controls.dataset.autoHideReady = "1";
+
+  let lastY = window.scrollY || 0;
+  let ticking = false;
+  const MOBILE_MAX = 1024;
+  const DELTA = 10;
+
+  const apply = () => {
+    ticking = false;
+    const isMobileOrTablet = window.innerWidth <= MOBILE_MAX;
+    const scrollPanelOpen = isScrollPanelVisible();
+
+    if (!isMobileOrTablet) {
+      controls.classList.remove("controls-hidden");
+      lastY = window.scrollY || 0;
+      return;
+    }
+
+    if (scrollPanelOpen) {
+      controls.classList.remove("controls-hidden");
+      lastY = window.scrollY || 0;
+      return;
+    }
+
+    const currentY = window.scrollY || 0;
+    const diff = currentY - lastY;
+
+    if (currentY <= 12) {
+      controls.classList.remove("controls-hidden");
+    } else if (diff > DELTA) {
+      controls.classList.add("controls-hidden");
+      lastY = currentY;
+      return;
+    } else if (diff < -DELTA) {
+      controls.classList.remove("controls-hidden");
+      lastY = currentY;
+      return;
+    }
+
+    lastY = currentY;
+  };
+
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      ticking = true;
+      window.requestAnimationFrame(apply);
+    }
+  }, { passive: true });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > MOBILE_MAX) {
+      controls.classList.remove("controls-hidden");
+    } else {
+      apply();
+    }
+  }, { passive: true });
+
+  apply();
+}
+
+
+
+const CHORD_TOKEN_REGEX = /^[A-G](?:#|b)?(?:(?:maj|min|m|sus|dim|aug|add|mmaj)?(?:2|4|5|6|7|7M|9|11|13)?(?:sus2|sus4|add2|add4|add9|maj7|maj9|maj11|maj13|m7|m9|m11|m13|dim7|aug7|7M)?(?:\([^)]+\))?)?(?:\/[A-G](?:#|b)?)?$/i;
+const INTRO_LINE_REGEX = /^\s*\[Intro\]\s*$/i;
+const INTRO_WITH_CHORDS_REGEX = /^\s*\[Intro\]\s+/i;
+
+function cleanChordToken(token = "") {
+  return String(token || "")
+    .trim()
+    .replace(/^[\[(\{'"`]+/, "")
+    .replace(/[\])\}'"`.,;:!?]+$/, "");
+}
+
+function isChordTokenForStyle(token = "") {
+  return CHORD_TOKEN_REGEX.test(cleanChordToken(token));
+}
+
+function isChordOnlyLineForStyle(text = "") {
+  const tokens = String(text || "")
+    .trim()
+    .split(/\s+/)
+    .map(cleanChordToken)
+    .filter(Boolean);
+  if (!tokens.length) return false;
+  return tokens.every(isChordTokenForStyle);
+}
+
+function wrapTokensInTextNode(node) {
+  const text = node.nodeValue || "";
+  if (!text.trim()) return;
+  const parts = text.split(/(\s+)/);
+  let changed = false;
+  const frag = document.createDocumentFragment();
+  for (const part of parts) {
+    if (!part) continue;
+    if (/^\s+$/.test(part)) {
+      frag.appendChild(document.createTextNode(part));
+      continue;
+    }
+    if (isChordTokenForStyle(part)) {
+      const span = document.createElement('span');
+      span.className = 'chord-token';
+      span.textContent = part;
+      frag.appendChild(span);
+      changed = true;
+    } else {
+      frag.appendChild(document.createTextNode(part));
+    }
+  }
+  if (changed) node.replaceWith(frag);
+}
+
+function applyChordTokensToInlineHtml(html = "") {
+  const wrapper = document.createElement('span');
+  wrapper.innerHTML = html;
+  const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let current;
+  while ((current = walker.nextNode())) nodes.push(current);
+  nodes.forEach(wrapTokensInTextNode);
+  return wrapper.innerHTML;
+}
+
+function richHtmlToLineSegments(html = "") {
+  let normalized = String(html || "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+    .replace(/<\/div>\s*<div[^>]*>/gi, "\n")
+    .replace(/<p[^>]*>/gi, "")
+    .replace(/<\/p>/gi, "")
+    .replace(/<div[^>]*>/gi, "")
+    .replace(/<\/div>/gi, "");
+  return normalized.split("\n");
+}
+
+function wrapChordLinesInHtml(html = "") {
+  const lines = richHtmlToLineSegments(html);
+  let introBlockRemaining = 0;
+  return lines.map((segmentHtml) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = segmentHtml;
+    const text = String(tmp.textContent || '').replace(/\u00A0/g, ' ');
+    const trimmed = text.trim();
+    let shouldProcess = false;
+    if (INTRO_LINE_REGEX.test(trimmed)) {
+      introBlockRemaining = 4;
+    } else if (INTRO_WITH_CHORDS_REGEX.test(trimmed)) {
+      shouldProcess = true;
+      introBlockRemaining = 4;
+    } else if (introBlockRemaining > 0) {
+      if (isChordOnlyLineForStyle(trimmed)) {
+        shouldProcess = true;
+        introBlockRemaining -= 1;
+      } else {
+        introBlockRemaining = 0;
+      }
+    } else if (isChordOnlyLineForStyle(trimmed)) {
+      shouldProcess = true;
+    }
+    return shouldProcess ? applyChordTokensToInlineHtml(segmentHtml) : segmentHtml;
+  }).join('<br>');
+}
+
+function applyChordStylesAfterRender(content) {
+  if (!content) return;
+  const chordColor = content.dataset.chordColorValue || '';
+  if (chordColor) content.style.setProperty('--seven-chord-color', chordColor);
+  else content.style.removeProperty('--seven-chord-color');
+}
+
 function transposeRichHtml(html = "", steps = 0) {
   const wrapper = document.createElement("div");
   wrapper.innerHTML = html;
@@ -257,7 +479,7 @@ function transposeRichHtml(html = "", steps = 0) {
   textNodes.forEach((node) => {
     node.nodeValue = transposeText(node.nodeValue || "", steps);
   });
-  return wrapper.innerHTML;
+  return wrapChordLinesInHtml(wrapper.innerHTML);
 }
 
 export function setOriginalMetaTom(originalTom = "C", capo = "", bpm = "") {
@@ -289,10 +511,12 @@ export function rerenderPublicCifra() {
   } else {
     content.textContent = transposeText(originalText, steps);
   }
+  applyChordStylesAfterRender(content);
 
   meta.dataset.currentTom = currentTom;
   renderMeta(meta, currentTom, originalTom, capo, bpm);
 }
+
 
 export function increaseFont() {
   const content = $("#cifra-content");
@@ -395,7 +619,9 @@ export function initCifraControls() {
   }
 
   ensureSpeedLabel();
+  initMobileScrollBar();
   initScrollPanelDrag();
+  initResponsiveControlsAutoHide();
   applySavedFont();
   applySavedFocus();
   rerenderPublicCifra();
@@ -411,9 +637,14 @@ export function initCifraControls() {
   $("#scroll-faster")?.addEventListener("click", () => changeSpeed(1));
   $("#scroll-slower")?.addEventListener("click", () => changeSpeed(-1));
   $("#scroll-toggle")?.addEventListener("click", toggleScroll);
-  $("#scroll-bubble-close")?.addEventListener("click", () => setScrollPanelVisible(false));
+  $("#scroll-bubble-close")?.addEventListener("click", (event) => { event.preventDefault(); event.stopPropagation(); setScrollPanelVisible(false); });
 
   updateScrollButton(false);
   updateSpeedIndicator();
-  setScrollPanelVisible(isScrollPanelVisible());
+  if (window.innerWidth <= 1024) {
+    setScrollPanelVisible(false);
+  } else {
+    setScrollPanelVisible(isScrollPanelVisible());
+  }
 }
+

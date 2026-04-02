@@ -1,3 +1,5 @@
+import { watchAuth, getAdminProfileByEmail } from "../auth.js";
+import { hasPermission } from "../services/admin-permissions-service.js";
 import { getCollection, updateDocument } from "../db.js";
 
 async function renderList() {
@@ -28,3 +30,19 @@ async function renderList() {
 }
 
 document.addEventListener("DOMContentLoaded", renderList);
+
+watchAuth(async (user) => {
+  if (!user?.email) return;
+  const admin = await getAdminProfileByEmail(user.email);
+  if (!admin) return;
+  const refresh = async () => {
+    await renderList();
+    if (!hasPermission(admin,'contatos','view')) {
+      const box = document.getElementById('admin-contatos-list');
+      if (box) box.innerHTML = '<p>Você não tem permissão para ver contatos.</p>';
+      return;
+    }
+    document.querySelectorAll('[data-mark-id]').forEach((el)=>el.classList.toggle('hidden', !hasPermission(admin,'contatos','delete')));
+  };
+  await refresh();
+});

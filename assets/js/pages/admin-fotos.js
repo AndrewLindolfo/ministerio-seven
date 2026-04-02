@@ -1,17 +1,20 @@
+import { watchAuth, getAdminProfileByEmail } from "../auth.js";
+import { hasPermission } from "../services/admin-permissions-service.js";
 import { listAlbuns, saveAlbum, removeAlbum } from "../services/albuns-service.js";
+import { isGoogleDriveFileUrl, isGooglePhotosShortUrl } from "../utils/google-drive-links.js";
 
 function $(selector) {
   return document.querySelector(selector);
 }
 
-function isGooglePhotosShareUrl(url = "") {
-  return /photos\.app\.goo\.gl/i.test(String(url || "").trim());
-}
-
 function getCoverWarningHtml(coverUrl = "") {
-  return isGooglePhotosShareUrl(coverUrl)
-    ? `<p class="admin-form-warning">Link curto do Google Fotos normalmente não é imagem direta. Se a capa não aparecer no site, use uma URL direta de imagem (jpg/png/webp).</p>`
-    : "";
+  if (isGooglePhotosShortUrl(coverUrl)) {
+    return `<p class="admin-form-warning">Link curto do Google Fotos normalmente não é imagem direta. Para capa, prefira arquivo no Google Drive ou URL direta de imagem.</p>`;
+  }
+  if (isGoogleDriveFileUrl(coverUrl)) {
+    return `<p class="admin-form-warning">Link do Google Drive detectado. Ao salvar, ele será convertido automaticamente para imagem direta.</p>`;
+  }
+  return "";
 }
 
 function ensureAlbumModal() {
@@ -108,7 +111,7 @@ async function onSubmitAlbumForm(event) {
     return;
   }
 
-  if (isGooglePhotosShareUrl(payload.coverUrl)) {
+  if (isGooglePhotosShortUrl(payload.coverUrl)) {
     alert("Aviso: link curto do Google Fotos geralmente não funciona como imagem direta de capa. Se a capa não aparecer, use uma URL direta de imagem.");
   }
 
@@ -172,4 +175,17 @@ document.addEventListener("DOMContentLoaded", () => {
   ensureAlbumModal();
   document.getElementById("new-album-button")?.addEventListener("click", () => openAlbumModal());
   renderList();
+});
+
+watchAuth(async (user) => {
+  if (!user?.email) return;
+  const admin = await getAdminProfileByEmail(user.email);
+  if (!admin) return;
+  const refresh = async () => {
+    await renderList();
+    document.getElementById('new-album-button')?.classList.toggle('hidden', !hasPermission(admin,'fotos','create'));
+    document.querySelectorAll('[data-edit-id]').forEach((el)=>el.classList.toggle('hidden', !hasPermission(admin,'fotos','edit')));
+    document.querySelectorAll('[data-delete-id]').forEach((el)=>el.classList.toggle('hidden', !hasPermission(admin,'fotos','delete')));
+  };
+  await refresh();
 });

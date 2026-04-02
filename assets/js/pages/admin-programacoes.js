@@ -1,3 +1,5 @@
+import { watchAuth, getAdminProfileByEmail } from "../auth.js";
+import { hasPermission, isPrimaryAdmin } from "../services/admin-permissions-service.js";
 import { listProgramacoes, getProgramacao, saveProgramacao, removeProgramacao } from "../services/programacoes-service.js";
 import { listMusicas } from "../services/musicas-service.js";
 import { listCifras } from "../services/cifras-service.js";
@@ -394,4 +396,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   await preloadCatalogs();
   $("#new-programacao-button")?.addEventListener("click", () => openModal());
   await renderProgramacoes();
+});
+
+watchAuth(async (user) => {
+  if (!user?.email) return;
+  const admin = await getAdminProfileByEmail(user.email);
+  if (!admin) return;
+  const refresh = async () => {
+    await renderProgramacoes();
+    document.getElementById('new-programacao-button')?.classList.toggle('hidden', !hasPermission(admin,'programacoes','create'));
+    document.querySelectorAll('[data-edit-id]').forEach((el)=>el.classList.toggle('hidden', !hasPermission(admin,'programacoes','edit')));
+    document.querySelectorAll('[data-delete-id]').forEach((el)=>el.classList.toggle('hidden', !hasPermission(admin,'programacoes','delete')));
+  };
+  await refresh();
 });
